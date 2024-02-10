@@ -3,6 +3,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import pickle
 
 #CSV file path
 file = 'C:\\Users\\Admin\\OneDrive\\Pictures\\Documents\\GitHub\\Spam Detection\\emails.csv'
@@ -20,8 +26,9 @@ print(data['text'][0])
 # Afficher le décompte des valeurs de la colonne 'spam'
 print(data['spam'].value_counts())
 
+# Visualisation of the data
 sns.countplot(data['spam'])
-
+plt.show()
 data.duplicated().sum()
 
 # Separate X and Y
@@ -29,25 +36,33 @@ x = data['text'].values
 y = data['spam'].values
 print(y)
 
-from sklearn.model_selection import train_test_split
+#Division des données en ensembles d'entraînement et de test
 x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state=0)
 
 x_train.shape
 y_train.shape
 
-print(x_train.shape, y_train.shape)
+# Création du pipeline. 
+# utilisé Pipeline pour créer un pipeline de traitement de données
+# entraîné ce pipeline sur les données d'entraînement et j'ai prédit les données de test.
 
+pipe = Pipeline([
+    ('vect', CountVectorizer()),  # Utilisation de CountVectorizer pour convertir le texte en vecteurs
+    ('clf', MultinomialNB()),  # Utilisation du classifieur Naive Bayes multinomial
+])
 
-#preprocessing
-from sklearn.feature_extraction.text import CountVectorizer
-
-cv = CountVectorizer()
-
-#train by ML algorithm
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import make_pipeline
-nb = MultinomialNB
-
-pipe = make_pipeline(cv, nb)
-
+#Train the pipeline
 pipe.fit(x_train, y_train)
+
+#Prediction on the test
+y_pred = pipe.predict(x_test)
+
+#Calculation of the precision
+accuracy_score(y_pred, y_test)
+
+#Exemple of prediction for an email
+email = ["You won trip!"]
+pipe.predict(email)
+
+#Save the model
+pickle.dump(pipe, open("Naive_model.pkl", 'wb'))
